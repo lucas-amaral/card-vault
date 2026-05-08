@@ -1,0 +1,20 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+security:
+  jwt:
+    secret: testSecretKey_3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007b
+    expiration: 86400000
+
+card:
+  encryption:
+    key: "0123456789abcdef0123456789abcdef"
+
+logging:
+  level:
+    br.com.amaral: DEBUG
+
