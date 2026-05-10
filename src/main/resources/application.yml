@@ -55,3 +55,6 @@ card:
   encryption:
     key: ${CARD_ENCRYPTION_KEY:0123456789abcdef0123456789abcdef}
 
+audit:
+  encryption:
+    key: ${AUDIT_ENCRYPTION_KEY:${CARD_ENCRYPTION_KEY:0123456789abcdef0123456789abcdef}}
