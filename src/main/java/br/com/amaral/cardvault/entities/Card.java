@@ -33,6 +33,12 @@ public class Card {
     private Long id;
 
     /**
+     * Public-facing UUID returned to clients as the unique identifier.
+     */
+    @Column(name = "external_id", nullable = false, unique = true, length = 36)
+    private String externalId;
+
+    /**
      * AES-256 encrypted card number. Never exposed in API responses.
      */
     @Column(name = "card_number_enc", nullable = false, columnDefinition = "TEXT")

@@ -1,3 +1,23 @@
 .gradle/
 build/
+*.class
+*.jar
+!gradle-wrapper.jar
+
+# IDE
 .idea/
+*.iml
+.vscode/
+*.swp
+
+# Env
+.env
+*.env
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db

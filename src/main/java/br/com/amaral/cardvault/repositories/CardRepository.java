@@ -15,6 +15,8 @@ public interface CardRepository extends JpaRepository<Card, Long> {
 
     Optional<Card> findByCardHash(String cardHash);
 
+    Optional<Card> findByExternalId(String externalId);
+
     boolean existsByCardHash(String cardHash);
 
     List<Card> findByBatchName(String batchName);

@@ -12,9 +12,10 @@ security:
 
 card:
   encryption:
-    key: "0123456789abcdef0123456789abcdef"
+    key: 0123456789abcdef0123456789abcdef
 
 logging:
   level:
-    br.com.amaral: DEBUG
-
+    br:
+      com:
+        amaral: DEBUG
