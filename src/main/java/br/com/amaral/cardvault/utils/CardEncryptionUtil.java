@@ -35,17 +35,17 @@ import java.util.Base64;
 @Component
 public class CardEncryptionUtil {
 
-    private static final String AES_ALGORITHM  = "AES/GCM/NoPadding";
+    private static final String AES_ALGORITHM = "AES/GCM/NoPadding";
     private static final String HMAC_ALGORITHM = "HmacSHA256";
     private static final int GCM_TAG_LENGTH = 128;
-    private static final int GCM_IV_LENGTH  = 12;
+    private static final int GCM_IV_LENGTH = 12;
 
     private final SecretKey aesKey;
     private final SecretKey hmacKey;
 
     public CardEncryptionUtil(@Value("${card.encryption.key}") String encryptionKey) {
         byte[] rawSecret = encryptionKey.getBytes(StandardCharsets.UTF_8);
-        this.aesKey  = new SecretKeySpec(deriveKey(rawSecret, "encryption"), "AES");
+        this.aesKey = new SecretKeySpec(deriveKey(rawSecret, "encryption"), "AES");
         this.hmacKey = new SecretKeySpec(deriveKey(rawSecret, "hashing"),    HMAC_ALGORITHM);
     }
 

@@ -27,9 +27,9 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class JwtAuthenticationFilterTest {
 
-    @Mock private JwtService        jwtService;
+    @Mock private JwtService jwtService;
     @Mock private UserDetailsService userDetailsService;
-    @Mock private FilterChain        filterChain;
+    @Mock private FilterChain filterChain;
 
     @InjectMocks
     private JwtAuthenticationFilter filter;
