@@ -2,7 +2,6 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '4.0.5'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'jacoco'
 }
 
 group = 'br.com.amaral'
@@ -30,6 +29,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+
+    // JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
 
     // Database
     runtimeOnly 'com.mysql:mysql-connector-j'
@@ -41,11 +46,11 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
     // OpenAPI / Swagger
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
 
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:mysql'
 }
 
@@ -55,19 +60,35 @@ dependencyManagement {
     }
 }
 
-tasks.named('test') {
-    useJUnitPlatform()
-    finalizedBy jacocoTestReport
-}
-
-jacocoTestReport {
-    dependsOn test
-    reports {
-        xml.required = true
-        html.required = true
+gradle.taskGraph.whenReady { taskGraph ->
+    taskGraph.allTasks.forEach { task ->
+        if (task.name == 'test') {
+            task.finalizedBy = []
+        }
     }
 }
 
-jacoco {
-    toolVersion = "0.8.11"
+def integrationTestPattern = 'br/com/amaral/cardvault/integrations/**'
+
+def configureRancherDesktopDocker = { Test task ->
+    def rancherSocket = file("${System.properties['user.home']}/.rd/docker.sock")
+    if (!System.getenv('DOCKER_HOST') && rancherSocket.exists()) {
+        task.environment 'DOCKER_HOST', "unix://${rancherSocket.absolutePath}"
+        task.environment 'TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE', '/var/run/docker.sock'
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    // Exclude integration tests by default (they require Docker)
+    exclude integrationTestPattern
+    configureRancherDesktopDocker(it)
+}
+
+// Create a separate task for integration tests that require Docker
+tasks.register('integrationTest', Test) {
+    useJUnitPlatform()
+    include integrationTestPattern
+    shouldRunAfter test
+    configureRancherDesktopDocker(it)
 }

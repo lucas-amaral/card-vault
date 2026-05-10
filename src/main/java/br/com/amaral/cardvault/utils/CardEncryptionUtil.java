@@ -37,8 +37,8 @@ public class CardEncryptionUtil {
 
     private static final String AES_ALGORITHM  = "AES/GCM/NoPadding";
     private static final String HMAC_ALGORITHM = "HmacSHA256";
-    private static final int    GCM_TAG_LENGTH = 128;
-    private static final int    GCM_IV_LENGTH  = 12;
+    private static final int GCM_TAG_LENGTH = 128;
+    private static final int GCM_IV_LENGTH  = 12;
 
     private final SecretKey aesKey;
     private final SecretKey hmacKey;
@@ -99,8 +99,8 @@ public class CardEncryptionUtil {
      */
     public String decrypt(final String encryptedCard) {
         try {
-            byte[] decoded    = Base64.getDecoder().decode(encryptedCard);
-            byte[] iv         = new byte[GCM_IV_LENGTH];
+            byte[] decoded = Base64.getDecoder().decode(encryptedCard);
+            byte[] iv = new byte[GCM_IV_LENGTH];
             byte[] cipherText = new byte[decoded.length - GCM_IV_LENGTH];
 
             System.arraycopy(decoded, 0,             iv,         0, GCM_IV_LENGTH);
