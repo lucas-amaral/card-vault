@@ -1,0 +1,39 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: cardvault-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: cardvault
+      MYSQL_USER: cardvault
+      MYSQL_PASSWORD: cardvault123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: cardvault-app
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:mysql://db:3306/cardvault?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      DB_USERNAME: ${DB_USERNAME:-cardvault}
+      DB_PASSWORD: ${DB_PASSWORD:-cardvault123}
+      JWT_SECRET: ${JWT_SECRET:-change_me_to_a_long_random_secret_at_least_32_chars_long}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      CARD_ENCRYPTION_KEY: ${CARD_ENCRYPTION_KEY:-0123456789abcdef0123456789abcdef}
+      AUDIT_ENCRYPTION_KEY: ${AUDIT_ENCRYPTION_KEY:-0123456789abcdef0123456789abcdef}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
