@@ -12,19 +12,19 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * Base class for integration tests that require a real MySQL database via Testcontainers.
  * The container is shared across all subclasses (static) to speed up the test suite.
  *
- * NOTE: These tests require Docker to be running. They will be skipped if Docker is unavailable.
+ * Tests are automatically skipped if Docker is not available on the current machine,
+ * making this safe to run in any environment without manual configuration.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = true)
 public abstract class AbstractIntegrationTest {
 
     @Container
     static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
             .withDatabaseName("cardvault_test")
             .withUsername("test")
-            .withPassword("test")
-            .withReuse(true);
+            .withPassword("test");
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
