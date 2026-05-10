@@ -82,8 +82,8 @@ public class AuditLoggingFilter extends OncePerRequestFilter {
                     .httpMethod(request.getMethod())
                     .endpoint(request.getRequestURI())
                     .statusCode(wrappedResponse.getStatus())
-                    .requestBody(redactedEndpoint ? redactBody(requestBody) : maskSensitiveData(requestBody))
-                    .responseBody(redactedEndpoint ? redactBody(responseBody) : maskSensitiveData(responseBody))
+                    .requestBody(redactedEndpoint ? "[REDACTED]" : maskSensitiveData(requestBody))
+                    .responseBody(redactedEndpoint ? "[REDACTED]" : maskSensitiveData(responseBody))
                     .ipAddress(request.getRemoteAddr())
                     .durationMs(duration)
                     .build();
@@ -130,19 +130,22 @@ public class AuditLoggingFilter extends OncePerRequestFilter {
     }
 
     private boolean shouldRedactBodies(String uri) {
-        return uri.startsWith("/api/v1/auth") || uri.startsWith("/api/v1/cards");
-    }
-
-    private String redactBody(String body) {
-        return "[REDACTED]";
+        return uri.startsWith("/api/v1/auth");
     }
 
     /**
-     * Replaces digit sequences that look like card numbers (13-19 digits) with masked versions.
+     * Replaces the value of any JSON field named "cardNumber" with a masked version,
+     * and also masks bare digit sequences that look like card numbers (13–19 digits).
+     * This keeps the rest of the audit payload intact and readable.
      */
     private String maskSensitiveData(String body) {
         if (body == null) return null;
-        // Replace middle digits of sequences that could be card numbers
-        return body.replaceAll("\\b(\\d{6})\\d+(\\d{4})\\b", "$1****$2");
+        // Mask "cardNumber":"<digits>" in JSON bodies
+        String masked = body.replaceAll(
+                "(?i)(\"cardNumber\"\\s*:\\s*\")(\\d{6})\\d+(\\d{4})(\")",
+                "$1$2****$3$4"
+        );
+        // Also mask any bare PAN-like digit sequences not already caught above
+        return masked.replaceAll("(?<!\\d)(\\d{6})\\d{3,9}(\\d{4})(?!\\d)", "$1****$2");
     }
 }

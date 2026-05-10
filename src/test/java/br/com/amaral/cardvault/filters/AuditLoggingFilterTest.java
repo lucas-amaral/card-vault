@@ -80,12 +80,12 @@ class AuditLoggingFilterTest {
     }
 
     // -------------------------------------------------------------------------
-    // Card endpoint suppression
+    // Card endpoint — masking (not full suppression)
     // -------------------------------------------------------------------------
 
     @Test
-    @DisplayName("POST /api/v1/cards — request body with PAN is fully suppressed")
-    void cardEndpoint_singleCard_bodySuppressed() throws Exception {
+    @DisplayName("POST /api/v1/cards — cardNumber field in request body is masked, response is kept")
+    void cardEndpoint_singleCard_panIsMasked() throws Exception {
         MockHttpServletRequest request = buildRequest(
                 "POST", "/api/v1/cards",
                 "{\"cardNumber\":\"4111111111111111\"}");
@@ -97,31 +97,37 @@ class AuditLoggingFilterTest {
         verify(auditLogService).save(logCaptor.capture());
         AuditLog saved = logCaptor.getValue();
 
-        assertThat(saved.getRequestBody()).isEqualTo("[REDACTED]");
-        assertThat(saved.getResponseBody()).isEqualTo("[REDACTED]");
+        // PAN must not appear in plain text
         assertThat(saved.getRequestBody()).doesNotContain("4111111111111111");
+        // But the rest of the body is intact — not fully suppressed
+        assertThat(saved.getRequestBody()).isNotEqualTo("[REDACTED]");
+        assertThat(saved.getRequestBody()).contains("cardNumber");
+        // Response is readable (contains the UUID, not redacted)
+        assertThat(saved.getResponseBody()).contains("some-uuid");
     }
 
     @Test
-    @DisplayName("GET /api/v1/cards/{pan} — response body is fully suppressed")
-    void cardEndpoint_lookup_bodySuppressed() throws Exception {
+    @DisplayName("POST /api/v1/cards/lookup — cardNumber field in request body is masked")
+    void cardEndpoint_lookup_panIsMasked() throws Exception {
         MockHttpServletRequest request = buildRequest(
-                "GET", "/api/v1/cards/4111111111111111", null);
+                "POST", "/api/v1/cards/lookup",
+                "{\"cardNumber\":\"4111111111111111\"}");
         MockHttpServletResponse response = buildResponse(
-                200, "{\"data\":{\"id\":\"some-uuid\",\"cardNumber\":\"4111111111111111\"}}");
+                200, "{\"data\":{\"id\":\"some-uuid\"}}");
 
         filter.doFilterInternal(request, response, filterChain);
 
         verify(auditLogService).save(logCaptor.capture());
         AuditLog saved = logCaptor.getValue();
 
-        assertThat(saved.getRequestBody()).isEqualTo("[REDACTED]");
-        assertThat(saved.getResponseBody()).isEqualTo("[REDACTED]");
+        assertThat(saved.getRequestBody()).doesNotContain("4111111111111111");
+        assertThat(saved.getRequestBody()).isNotEqualTo("[REDACTED]");
+        assertThat(saved.getResponseBody()).contains("some-uuid");
     }
 
     @Test
-    @DisplayName("POST /api/v1/cards/batch — bodies are fully suppressed")
-    void cardEndpoint_batch_bodySuppressed() throws Exception {
+    @DisplayName("POST /api/v1/cards/batch — response body with job details is kept, not suppressed")
+    void cardEndpoint_batch_responseBodyIsKept() throws Exception {
         MockHttpServletRequest request = buildRequest(
                 "POST", "/api/v1/cards/batch", null);
         MockHttpServletResponse response = buildResponse(
@@ -132,8 +138,10 @@ class AuditLoggingFilterTest {
         verify(auditLogService).save(logCaptor.capture());
         AuditLog saved = logCaptor.getValue();
 
-        assertThat(saved.getRequestBody()).isEqualTo("[REDACTED]");
-        assertThat(saved.getResponseBody()).isEqualTo("[REDACTED]");
+        // Response is fully readable — no PAN involved
+        assertThat(saved.getResponseBody()).contains("some-uuid");
+        assertThat(saved.getResponseBody()).contains("PENDING");
+        assertThat(saved.getResponseBody()).isNotEqualTo("[REDACTED]");
     }
 
     // -------------------------------------------------------------------------
